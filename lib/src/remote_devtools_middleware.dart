@@ -7,6 +7,7 @@ class RemoteDevToolsObserver extends BlocObserver {
   String? _channel;
   String url;
   RemoteDevToolsStatus _status = RemoteDevToolsStatus.notConnected;
+
   RemoteDevToolsStatus get status => _status;
 
   final Map<String, Map<int, String>> _blocs = {};
@@ -81,15 +82,15 @@ class RemoteDevToolsObserver extends BlocObserver {
   }
 
   void _handleAck(Map<String, dynamic> json) {
-    for (var bloc in _appBlocs) {
-      json.forEach((key, value) {
-        if (bloc.runtimeType.toString() == key) {
-          final newState = bloc.state.fromJson(value);
+    log(json.toString());
 
-          bloc.emit(newState);
-        }
-      });
-    }
+    json.forEach((key, value) {
+      final bloc = _appBlocs.firstWhere((bloc) => bloc.runtimeType.toString() == key);
+
+      final newState = bloc.state.fromJson(value);
+
+      bloc.emit(newState);
+    });
   }
 
   void _relay(String type, [BlocBase? bloc, Object? state, dynamic action, String? nextActionId]) {

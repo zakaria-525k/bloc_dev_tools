@@ -1,6 +1,6 @@
 part of 'counter_bloc.dart';
 
-abstract class CounterEvent extends Equatable implements MappableToJson {
+abstract class CounterEvent extends Equatable implements MappableToJson<CounterEvent> {
   const CounterEvent();
 
   @override

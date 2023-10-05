@@ -1,25 +1,9 @@
+// ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
+
 part of flutter_bloc_dev_tools;
 
-/// The connection state of the middleware
-enum RemoteDevToolsStatus {
-  /// No socket connection to the remote host
-  notConnected,
-
-  /// Attempting to open socket
-  connecting,
-
-  /// Connected to remote, but not started
-  connected,
-
-  /// Awating start response
-  starting,
-
-  /// Sending and receiving actions
-  started
-}
-
 class RemoteDevToolsObserver extends BlocObserver {
-  late Socket socket;
+  static late Socket socket;
   String? _channel;
   String url;
   RemoteDevToolsStatus _status = RemoteDevToolsStatus.notConnected;
@@ -27,6 +11,7 @@ class RemoteDevToolsObserver extends BlocObserver {
 
   final Map<String, Map<int, String>> _blocs = {};
   final Map<String, dynamic> _appState = {};
+  final Set<BlocBase> _appBlocs = {};
 
   /// The name that will appear in Instance Name in Dev Tools. If not specified,
   /// default to 'Flutter Dev Tools'.
@@ -49,29 +34,29 @@ class RemoteDevToolsObserver extends BlocObserver {
     _status = RemoteDevToolsStatus.connected;
     _channel = await _login();
     _status = RemoteDevToolsStatus.starting;
-    _relay('START');
-    await _waitForStart();
+    _relay(DevConstant.start);
+    _waitForStart();
   }
 
   Future<String> _login() {
     final c = Completer<String>();
-    socket.emit('login', 'master', (String name, dynamic error, dynamic data) {
+    socket.emit(DevConstant.login, DevConstant.master, (String name, dynamic error, dynamic data) {
       c.complete(data as String);
     });
     return c.future;
   }
 
-  Future<dynamic> _waitForStart() {
-    final c = Completer();
+  void _waitForStart() {
     socket.on(_channel!, (String? name, dynamic data) {
-      if (data['type'] == 'START') {
+      if (data[DevConstant.type] == DevConstant.start) {
         _status = RemoteDevToolsStatus.started;
-        c.complete();
       } else {
-        c.completeError(data);
+        if (data[DevConstant.type] == DevConstant.dispatch &&
+            data[DevConstant.smallAction][DevConstant.type] == DevConstant.jumpToState) {
+          _handleAck(json.decode(data[DevConstant.state]) as Map<String, dynamic>);
+        }
       }
     });
-    return c.future;
   }
 
   String? _getBlocName(BlocBase? bloc) {
@@ -95,41 +80,56 @@ class RemoteDevToolsObserver extends BlocObserver {
     }
   }
 
+  void _handleAck(Map<String, dynamic> json) {
+    for (var bloc in _appBlocs) {
+      json.forEach((key, value) {
+        if (bloc.runtimeType.toString() == key) {
+          final newState = bloc.state.fromJson(value);
+
+          bloc.emit(newState);
+        }
+      });
+    }
+  }
+
   void _relay(String type, [BlocBase? bloc, Object? state, dynamic action, String? nextActionId]) {
-    final message = {'type': type, 'id': socket.id, 'name': instanceName};
+    final message = {DevConstant.type: type, 'id': socket.id, 'name': instanceName};
     final blocName = _getBlocName(bloc);
     if (state != null) {
       /// Add or update Bloc state
-      if (state is Mappable) {
+      if (state is MappableToJson) {
         _appState[blocName ?? 'NA'] = state.toJson();
-        message['payload'] = jsonEncode(_appState);
+        message[DevConstant.payload] = jsonEncode(_appState);
       } else {
         _appState[blocName ?? 'NA'] = state.toString();
-        message['payload'] = jsonEncode(_appState);
+        message[DevConstant.payload] = jsonEncode(_appState);
       }
     } else {
       /// Remove Bloc state
       if (_appState.containsKey(blocName)) {
         _removeBlocName(bloc!);
         _appState.remove(blocName);
-        message['payload'] = jsonEncode(_appState);
+        message[DevConstant.payload] = jsonEncode(_appState);
       }
     }
 
-    if (type == 'ACTION') {
-      message['action'] = _actionEncode(action);
-      message['nextActionId'] = nextActionId;
+    if (type == DevConstant.bigAction) {
+      message[DevConstant.smallAction] = _actionEncode(action);
+      message[DevConstant.nextActionId] = nextActionId;
     } else if (action != null) {
-      message['action'] = action as String;
+      message[DevConstant.smallAction] = action as String;
     }
-    socket.emit(socket.id != null ? 'log' : 'log-noid', message);
+    if (bloc != null) {
+      _appBlocs.add(bloc);
+    }
+    socket.emit(socket.id != null ? DevConstant.log : DevConstant.logNoid, message);
   }
 
   @override
   void onTransition(Bloc bloc, Transition transition) {
     super.onTransition(bloc, transition);
     if (status == RemoteDevToolsStatus.started) {
-      _relay('ACTION', bloc, transition.nextState, transition.event);
+      _relay(DevConstant.bigAction, bloc, transition.nextState, transition.event);
     }
   }
 
@@ -137,7 +137,7 @@ class RemoteDevToolsObserver extends BlocObserver {
   void onCreate(BlocBase bloc) {
     super.onCreate(bloc);
     if (status == RemoteDevToolsStatus.started) {
-      _relay('ACTION', bloc, bloc.state, 'OnCreate');
+      _relay(DevConstant.bigAction, bloc, bloc.state, 'OnCreate');
     }
   }
 
@@ -145,31 +145,31 @@ class RemoteDevToolsObserver extends BlocObserver {
   void onClose(BlocBase bloc) {
     super.onClose(bloc);
     if (status == RemoteDevToolsStatus.started) {
-      _relay('ACTION', bloc, null, 'OnClose');
+      _relay(DevConstant.bigAction, bloc, null, 'OnClose');
     }
   }
 
   String _actionEncode(dynamic action) {
-    if (action is Mappable) {
+    if (action is MappableToJson) {
       if (action.toJson().keys.isEmpty) {
         return jsonEncode({
-          'type': action.runtimeType.toString(),
+          DevConstant.type: action.runtimeType.toString(),
         });
       }
       return jsonEncode({
-        'type': action.runtimeType.toString(),
-        'payload': action.toJson(),
+        DevConstant.type: action.runtimeType.toString(),
+        DevConstant.payload: action.toJson(),
       });
     }
 
-    if (action.toString().contains('Instance of')) {
+    if (action.toString().contains(DevConstant.instanceOf)) {
       return jsonEncode({
-        'type': action.runtimeType.toString(),
+        DevConstant.type: action.runtimeType.toString(),
       });
     }
 
     return jsonEncode({
-      'type': action.toString(),
+      DevConstant.type: action.toString(),
     });
   }
 }

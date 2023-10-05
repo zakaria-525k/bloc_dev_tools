@@ -1,3 +1,3 @@
-abstract class Mappable {
+abstract class MappableToJson {
   Map<String, dynamic> toJson();
 }

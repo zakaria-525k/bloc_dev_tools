@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:developer';
 
 import 'package:socketcluster_client/socketcluster_client.dart';
@@ -17,10 +16,6 @@ class MyListener extends BasicListener {
   @override
   void onConnected(Socket socket) {
     log('onConnected: socket $socket');
-    Timer.periodic(const Duration(seconds: 2), (_) {
-      log('Attempting to send');
-      socket.emit('sampleClientEvent', {'message': 'This is an object with a message property'});
-    });
   }
 
   @override

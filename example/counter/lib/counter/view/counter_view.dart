@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../counter.dart';
+import '../bloc/counter_bloc.dart';
 
 /// {@template counter_view}
 /// A [StatelessWidget] which reacts to the provided
@@ -29,13 +29,15 @@ class CounterView extends StatelessWidget {
           FloatingActionButton(
             key: const Key('counterView_increment_floatingActionButton'),
             child: const Icon(Icons.add),
-            onPressed: () => context.read<CounterBloc>().add(IncrementCounterEvent()),
+            onPressed: () =>
+                context.read<CounterBloc>().add(IncrementCounterEvent()),
           ),
           const SizedBox(height: 8),
           FloatingActionButton(
             key: const Key('counterView_decrement_floatingActionButton'),
             child: const Icon(Icons.remove),
-            onPressed: () => context.read<CounterBloc>().add(DecrementCounterEvent()),
+            onPressed: () =>
+                context.read<CounterBloc>().add(DecrementCounterEvent()),
           ),
         ],
       ),

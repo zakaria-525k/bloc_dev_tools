@@ -41,7 +41,8 @@ class RemoteDevToolsObserver extends BlocObserver {
 
   Future<String> _login() {
     final c = Completer<String>();
-    socket.emit(DevConstant.login, DevConstant.master, (String name, dynamic error, dynamic data) {
+    socket.emit(DevConstant.login, DevConstant.master,
+        (String name, dynamic error, dynamic data) {
       c.complete(data as String);
     });
     return c.future;
@@ -53,8 +54,10 @@ class RemoteDevToolsObserver extends BlocObserver {
         _status = RemoteDevToolsStatus.started;
       } else {
         if (data[DevConstant.type] == DevConstant.dispatch &&
-            data[DevConstant.smallAction][DevConstant.type] == DevConstant.jumpToState) {
-          _handleAck(json.decode(data[DevConstant.state]) as Map<String, dynamic>);
+            data[DevConstant.smallAction][DevConstant.type] ==
+                DevConstant.jumpToState) {
+          _handleAck(
+              json.decode(data[DevConstant.state]) as Map<String, dynamic>);
         }
       }
     });
@@ -65,7 +68,8 @@ class RemoteDevToolsObserver extends BlocObserver {
     final blocHash = bloc.hashCode;
     if (_blocs.containsKey(blocName)) {
       if (!_blocs[blocName]!.containsKey(blocHash)) {
-        _blocs[blocName]?[blocHash] = '$blocName-${_blocs[blocName]?.keys.length}';
+        _blocs[blocName]?[blocHash] =
+            '$blocName-${_blocs[blocName]?.keys.length}';
       }
     } else {
       _blocs[blocName] = {blocHash: blocName};
@@ -76,7 +80,8 @@ class RemoteDevToolsObserver extends BlocObserver {
   void _removeBlocName(BlocBase bloc) {
     final blocName = bloc.runtimeType.toString();
     final blocHash = bloc.hashCode;
-    if (_blocs.containsKey(blocName) && _blocs[blocName]!.containsKey(blocHash)) {
+    if (_blocs.containsKey(blocName) &&
+        _blocs[blocName]!.containsKey(blocHash)) {
       _blocs[blocName]?.remove(blocHash);
     }
   }
@@ -85,7 +90,8 @@ class RemoteDevToolsObserver extends BlocObserver {
     log(json.toString());
 
     json.forEach((key, value) {
-      final bloc = _appBlocs.firstWhere((bloc) => bloc.runtimeType.toString() == key);
+      final bloc =
+          _appBlocs.firstWhere((bloc) => bloc.runtimeType.toString() == key);
 
       final newState = bloc.state.fromJson(value);
 
@@ -93,8 +99,13 @@ class RemoteDevToolsObserver extends BlocObserver {
     });
   }
 
-  void _relay(String type, [BlocBase? bloc, Object? state, dynamic action, String? nextActionId]) {
-    final message = {DevConstant.type: type, 'id': socket.id, 'name': instanceName};
+  void _relay(String type,
+      [BlocBase? bloc, Object? state, dynamic action, String? nextActionId]) {
+    final message = {
+      DevConstant.type: type,
+      'id': socket.id,
+      'name': instanceName
+    };
     final blocName = _getBlocName(bloc);
     if (state != null) {
       /// Add or update Bloc state
@@ -123,14 +134,25 @@ class RemoteDevToolsObserver extends BlocObserver {
     if (bloc != null) {
       _appBlocs.add(bloc);
     }
-    socket.emit(socket.id != null ? DevConstant.log : DevConstant.logNoid, message);
+    socket.emit(
+        socket.id != null ? DevConstant.log : DevConstant.logNoid, message);
   }
 
   @override
   void onTransition(Bloc bloc, Transition transition) {
     super.onTransition(bloc, transition);
     if (status == RemoteDevToolsStatus.started) {
-      _relay(DevConstant.bigAction, bloc, transition.nextState, transition.event);
+      _relay(
+          DevConstant.bigAction, bloc, transition.nextState, transition.event);
+    }
+  }
+
+  @override
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+    if (status == RemoteDevToolsStatus.started && bloc is Cubit) {
+      _relay(DevConstant.bigAction, bloc, change.nextState,
+          bloc.runtimeType.toString());
     }
   }
 

@@ -10,6 +10,8 @@ class RemoteDevToolsObserver extends BlocObserver {
 
   RemoteDevToolsStatus get status => _status;
 
+  Set<int> skippedIndexes = {};
+
   final Map<String, Map<int, String>> _blocs = {};
   final Map<String, dynamic> _appState = {};
   final Set<BlocBase> _appBlocs = {};
@@ -52,12 +54,19 @@ class RemoteDevToolsObserver extends BlocObserver {
     socket.on(_channel!, (String? name, dynamic data) {
       if (data[DevConstant.type] == DevConstant.start) {
         _status = RemoteDevToolsStatus.started;
+      } else if (data[DevConstant.type] == DevConstant.dispatch &&
+          data[DevConstant.smallAction][DevConstant.type] ==
+              DevConstant.toggleAction) {
+        log('toogle');
+        _storeSkipIndex(data[DevConstant.smallAction][DevConstant.id]);
       } else {
         if (data[DevConstant.type] == DevConstant.dispatch &&
             data[DevConstant.smallAction][DevConstant.type] ==
                 DevConstant.jumpToState) {
-          _handleAck(
-              json.decode(data[DevConstant.state]) as Map<String, dynamic>);
+          log('jump');
+          _handleJump(
+              json.decode(data[DevConstant.state]) as Map<String, dynamic>,
+              data[DevConstant.smallAction][DevConstant.index]);
         }
       }
     });
@@ -86,8 +95,10 @@ class RemoteDevToolsObserver extends BlocObserver {
     }
   }
 
-  void _handleAck(Map<String, dynamic> json) {
-    log(json.toString());
+  void _handleJump(Map<String, dynamic> json, int index) {
+    if (skippedIndexes.contains(index)) {
+      return;
+    }
 
     json.forEach((key, value) {
       final bloc =
@@ -97,6 +108,10 @@ class RemoteDevToolsObserver extends BlocObserver {
 
       bloc.emit(newState);
     });
+  }
+
+  void _storeSkipIndex(int skipIndex) {
+    skippedIndexes.add(skipIndex);
   }
 
   void _relay(String type,

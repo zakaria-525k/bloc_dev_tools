@@ -13,4 +13,7 @@ class DevConstant {
   static const logNoid = 'log-noid';
   static const instanceOf = 'Instance of';
   static const nextActionId = 'nextActionId';
+  static const toggleAction = 'TOGGLE_ACTION';
+  static const index = 'index';
+  static const id = 'id';
 }

@@ -8,7 +8,7 @@ import 'package:bloc_dev_tools/src/dev_tools_enum_status.dart';
 import 'package:bloc_dev_tools/src/mappable.dart';
 import 'dart:convert';
 import 'dart:async';
-import 'src/bloc_listener.dart';
+import 'src/socket_listener.dart';
 
 import 'package:socketcluster_client/socketcluster_client.dart';
 

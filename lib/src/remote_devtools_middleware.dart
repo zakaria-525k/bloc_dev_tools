@@ -31,7 +31,7 @@ class RemoteDevToolsObserver extends BlocObserver {
     _status = RemoteDevToolsStatus.connecting;
     socket = await Socket.connect(
       url,
-      listener: MyListener(),
+      listener: SocketListener(),
     );
 
     _status = RemoteDevToolsStatus.connected;
@@ -57,13 +57,15 @@ class RemoteDevToolsObserver extends BlocObserver {
       } else if (data[DevConstant.type] == DevConstant.dispatch &&
           data[DevConstant.smallAction][DevConstant.type] ==
               DevConstant.toggleAction) {
-        log('toogle');
+        log('skip');
+
         _storeSkipIndex(data[DevConstant.smallAction][DevConstant.id]);
       } else {
         if (data[DevConstant.type] == DevConstant.dispatch &&
             data[DevConstant.smallAction][DevConstant.type] ==
                 DevConstant.jumpToState) {
           log('jump');
+
           _handleJump(
               json.decode(data[DevConstant.state]) as Map<String, dynamic>,
               data[DevConstant.smallAction][DevConstant.index]);

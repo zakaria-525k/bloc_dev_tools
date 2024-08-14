@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:socketcluster_client/socketcluster_client.dart';
 
-class MyListener extends BasicListener {
+class SocketListener extends BasicListener {
   @override
   void onAuthentication(Socket socket, bool? status) {
     log('onAuthentication: socket $socket status $status');

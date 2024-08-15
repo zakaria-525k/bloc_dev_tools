@@ -1,6 +1,6 @@
 # Remote Devtools for flutter_bloc
 
-A Flutter plugin that supports both Cubit and Bloc for state management, allowing you to inspect state changes and events.
+A Flutter plugin that visualizes state inspection displaying the data inside the state and events changing them.
 
 ## Features
 

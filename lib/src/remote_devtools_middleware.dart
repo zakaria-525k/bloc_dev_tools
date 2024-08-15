@@ -1,5 +1,6 @@
 // ignore_for_file: invalid_use_of_protected_member, invalid_use_of_visible_for_testing_member
 
+// ignore: use_string_in_part_of_directives
 part of flutter_bloc_dev_tools;
 
 class RemoteDevToolsObserver extends BlocObserver {

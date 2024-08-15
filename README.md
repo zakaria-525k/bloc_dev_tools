@@ -4,12 +4,12 @@ Remote Devtools support for Blocs of [flutter_bloc](https://github.com/felangel/
 
 ## Features
 
-- **Supports Cubit and bloc.
-- **Inspect bloc state and Event.
-- **Supports Skip Action: This allows dropping a state from the list of states in the app.
-- **Support Jump Action:This allows jumping to any state and starting the sliding of states from the selected state.
-- **Changes to the states made through the dashboard will be rendered on the tested mobile device.
-- **Support Slider that tracks all states except skipped states.
+- Supports Cubit and bloc.
+- Inspect bloc state and Event.
+- Supports Skip Action: This allows dropping a state from the list of states in the app.
+- Support Jump Action:This allows jumping to any state and starting the sliding of states from the selected state.
+- Changes to the states made through the dashboard will be rendered on the tested mobile device.
+- Support Slider that tracks all states except skipped states.
 
 
 ![Devtools Demo](https://github.com/andrea689/flutter_bloc_devtools/raw/main/demo.gif)

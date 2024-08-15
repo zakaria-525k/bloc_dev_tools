@@ -8,7 +8,7 @@ import 'app.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final observer = RemoteDevToolsObserver(
-    portNumber: 80003,
+    portNumber: 8000,
     ipAddress: 'localhost',
   );
 

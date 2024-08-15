@@ -1,6 +1,6 @@
 # Remote Devtools for flutter_bloc
 
-Remote Devtools support for Blocs of [flutter_bloc](https://github.com/felangel/bloc/tree/master/packages/flutter_bloc).
+A Flutter plugin that supports both Cubit and Bloc for state management, allowing you to inspect state changes and events.
 
 ## Features
 

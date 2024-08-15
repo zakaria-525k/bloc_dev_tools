@@ -7,8 +7,10 @@ import 'app.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final observer =
-      RemoteDevToolsObserver(url: 'ws://localhost:8000/socketcluster/');
+  final observer = RemoteDevToolsObserver(
+    portNumber: 80003,
+    ipAddress: 'localhost',
+  );
 
   await observer.connect();
 

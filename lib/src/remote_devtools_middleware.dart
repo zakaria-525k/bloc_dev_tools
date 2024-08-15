@@ -5,7 +5,10 @@ part of flutter_bloc_dev_tools;
 class RemoteDevToolsObserver extends BlocObserver {
   static late Socket socket;
   String? _channel;
-  String url;
+  late String _url;
+  int portNumber;
+  String ipAddress;
+
   RemoteDevToolsStatus _status = RemoteDevToolsStatus.notConnected;
 
   RemoteDevToolsStatus get status => _status;
@@ -21,24 +24,30 @@ class RemoteDevToolsObserver extends BlocObserver {
   String? instanceName;
 
   RemoteDevToolsObserver({
-    required this.url,
+    required this.portNumber,
+    required this.ipAddress,
     this.instanceName = 'Flutter Dev Tools',
   }) {
+    _url = "ws://$ipAddress:$portNumber/socketcluster/";
     connect();
   }
 
   Future<void> connect() async {
-    _status = RemoteDevToolsStatus.connecting;
-    socket = await Socket.connect(
-      url,
-      listener: SocketListener(),
-    );
+    try {
+      _status = RemoteDevToolsStatus.connecting;
+      socket = await Socket.connect(
+        _url,
+        listener: SocketListener(),
+      );
 
-    _status = RemoteDevToolsStatus.connected;
-    _channel = await _login();
-    _status = RemoteDevToolsStatus.starting;
-    _relay(DevConstant.start);
-    _waitForStart();
+      _status = RemoteDevToolsStatus.connected;
+      _channel = await _login();
+      _status = RemoteDevToolsStatus.starting;
+      _relay(DevConstant.start);
+      _waitForStart();
+    } catch (e) {
+      log('Must Run Devtools Correctly to continue');
+    }
   }
 
   Future<String> _login() {

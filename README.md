@@ -1,39 +1,105 @@
-<!--
-This README describes the package. If you publish this package to pub.dev,
-this README's contents appear on the landing page for your package.
+# Remote Devtools for flutter_bloc
 
-For information about how to write a good package README, see the guide for
-[writing package pages](https://dart.dev/guides/libraries/writing-package-pages).
+Remote Devtools support for Blocs of [flutter_bloc](https://github.com/felangel/bloc/tree/master/packages/flutter_bloc).
 
-For general information about developing packages, see the Dart guide for
-[creating packages](https://dart.dev/guides/libraries/create-library-packages)
-and the Flutter guide for
-[developing packages and plugins](https://flutter.dev/developing-packages).
--->
+`Cubit` is supported
 
-TODO: Put a short description of the package here that helps potential users
-know whether this package might be useful for them.
+![Devtools Demo](https://github.com/andrea689/flutter_bloc_devtools/raw/main/demo.gif)
 
-## Features
+## Installation
 
-TODO: List what your package can do. Maybe include images, gifs, or videos.
+Add the library to pubspec.yaml:
 
-## Getting started
-
-TODO: List prerequisites and provide or point to information on how to
-start using the package.
-
-## Usage
-
-TODO: Include short and useful examples for package users. Add longer examples
-to `/example` folder.
-
-```dart
-const like = 'sample';
+```yaml
+dependencies:
+  bloc_dev_tools: ^1.0.0
 ```
 
-## Additional information
+## BlocObserver configuration
 
-TODO: Tell users more about the package: where to find more information, how to
-contribute to the package, how to file issues, what response they can expect
-from the package authors, and more.
+Add `RemoteDevToolsObserver` to your `Bloc.observer`:
+
+```dart
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  final observer = RemoteDevToolsObserver(
+    portNumber: 8000,
+    ipAddress: 'localhost',
+  );
+
+  await observer.connect();
+  Bloc.observer = observer;
+
+  runApp(const CounterApp());
+}
+/*
+Notes About Ip Address on different Devices :
+
+*In real device ip
+Find the local IP address of your machine
+On Windows:
+Open Command Prompt and type ipconfig.
+On macOS/Linux:
+
+Open Terminal and type ifconfig (or ip a on Linux).
+Look for the inet address under your active network interface (e.g., en0).
+
+*In Simulator
+localhost
+
+*In Emulator
+10.0.2.2
+ */
+```
+
+## Making your Events and States Mappable
+
+Events and States have to implements `MappableToJson, MappableFromJson`:
+
+```dart
+class CounterState extends Equatable implements MappableToJson, MappableFromJson {
+  final int counter;
+
+  const CounterState({
+    required this.counter,
+  });
+
+  CounterState copyWith({
+    int? counter,
+  }) =>
+      CounterState(
+        counter: counter ?? this.counter,
+      );
+
+  @override
+  List<Object> get props => [
+    counter,
+  ];
+
+  @override
+  Map<String, dynamic> toJson() => {
+    'counter': counter,
+  };
+
+  @override
+  CounterState fromJson(Map<String, dynamic> json) {
+    return CounterState(counter: json['counter']);
+  }
+}
+
+```
+
+## Using remotedev
+
+Use the Javascript [Remote Devtools](https://github.com/zalmoxisus/remotedev-server) package. Start the remotedev server on your machine
+
+```bash
+npm install -g remotedev-server
+remotedev --port 8000
+```
+
+Run your application. It will connect to the remotedev server. You can now debug your flutter_bloc application by opening up `http://localhost:8000` in a web browser.
+
+## Examples
+
+- [Counter](example/counter)

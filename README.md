@@ -19,7 +19,7 @@ A Flutter plugin that visualizes state inspection displaying the data inside the
 Add the library to pubspec.yaml:
 
 ```yaml
-dependencies:
+dev_dependencies:
   bloc_dev_tools: ^1.0.0
 ```
 

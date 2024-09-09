@@ -1,6 +1,6 @@
 name: bloc_dev_tools
 description: The Remote DevTools package for `flutter_bloc` connects all Blocs to the Remote DevTools server, allowing developers to inspect changes in Bloc states and events during runtime.
-version: 1.0.1
+version: 1.0.2
 homepage: https://github.com/zakaria-525k/bloc_dev_tools
 
 environment:

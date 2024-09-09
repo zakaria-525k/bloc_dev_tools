@@ -9,7 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final observer = RemoteDevToolsObserver(
     portNumber: 8000,
-    ipAddress: 'localhost',
+    ipAddress: '10.0.2.2',
   );
 
   await observer.connect();
